@@ -1,0 +1,231 @@
+{
+  "project_info": {
+    "name": "Sawari",
+    "description": "Cab headrest digital advertising platform based in Pune, India. Cabs mounted with 10.1\" interactive screens behind front headrests.",
+    "pricing": "₹4,300 per cab per month (Minimum 15 cabs required for booking)",
+    "currency": "₹ INR",
+    "location": "Pune, Maharashtra, India",
+    "tech_stack": "React.js (JavaScript), Tailwind CSS, Lucide Icons, Recharts, Framer Motion, Shadcn UI primitives, FastAPI backend, MongoDB"
+  },
+  "portals_overview": {
+    "admin_ops": {
+      "name": "Sawari Control Hub (Admin & Operations)",
+      "accent_color": "Blue (#2563EB / #3B82F6)",
+      "theme_mode": "Dark slate / Clean high-density SaaS dashboard",
+      "target_user": "Founder, Operations Manager, Ad Moderator",
+      "core_features": [
+        "Executive KPI Dashboard (Active Cabs, Ad Impressions, Fleet Revenue, Active Ads)",
+        "Interactive Slot Visualiser Grid with 4 status colors (Green=Available, Amber=Booked, Grey=Offline, Red=Faulty)",
+        "Ad Review & Approval Queue with 16:9 simulated screen player",
+        "Fleet Input & Registration System",
+        "Advertisers & Drivers Management Tables",
+        "Driver Payouts & Automated Billing Engine",
+        "Finance Dashboard & Incident Management Tracker"
+      ]
+    },
+    "business": {
+      "name": "Sawari Advertiser Portal (Business Owners)",
+      "accent_color": "Amber / Gold (#D97706 / #F59E0B)",
+      "theme_mode": "Warm premium dark/light hybrid SaaS interface",
+      "target_user": "Pune Local Business Owners (Gyms, Restaurants, Showrooms, Real Estate)",
+      "core_features": [
+        "Business Overview with Live Ad Play Counter & Reach Metrics",
+        "Creatives Library with Status Badges (Approved, Pending Review, Rejected)",
+        "Video Upload Flow with 16:9 Cab Headrest Screen Simulator Modal",
+        "Book Slots Engine: Real-time fleet availability, interactive slot grid, cab count stepper (min 15 cabs), live total pricing breakdown",
+        "GST Invoice Generator & Mock Payment Drawer (UPI QR, Card, NetBanking)",
+        "Campaign Performance Analytics & CSV Data Exporter",
+        "Billing ledger with CGST/SGST split breakdown & Printable GST Invoices"
+      ]
+    },
+    "partner": {
+      "name": "Sawari Partner App (Driver Portal)",
+      "accent_color": "Emerald Green (#10B981 / #059669)",
+      "theme_mode": "Mobile-First Driver App (Phone-shaped max-w-[460px] centered container, dark high-contrast driver UI)",
+      "target_user": "Cab Drivers in Pune operating registered vehicles",
+      "core_features": [
+        "44px+ Touch Target Mobile Interface with Sticky Bottom Tab Bar",
+        "Today Tab: Active Duty Toggle, Today's Earnings, What's On Screen Live Stream, Compliance Status Banner",
+        "15-Day Compliance Photo Verification: Camera capture modal with grid overlay and instant sample submission",
+        "Earnings & Payout Ledger: Monthly payout breakdown, trip bonuses, payment history",
+        "Device Status Monitor: Screen hardware telemetry, battery/power check, cellular signal status",
+        "Driver Profile & Vehicle Specs"
+      ]
+    }
+  },
+  "design_system": {
+    "style_archetype": "Clean Professional Tech SaaS with High-Density Data Precision",
+    "typography": {
+      "headline_font": "Plus Jakarta Sans, sans-serif",
+      "body_font": "Inter, sans-serif",
+      "mono_font": "JetBrains Mono, monospace",
+      "hierarchy": {
+        "h1": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight",
+        "h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+        "h3": "text-xl sm:text-2xl font-semibold tracking-tight",
+        "h4": "text-lg sm:text-xl font-medium",
+        "body_lg": "text-base font-normal leading-relaxed",
+        "body_sm": "text-sm font-normal leading-normal",
+        "caption": "text-xs font-medium tracking-wide uppercase text-slate-400"
+      }
+    },
+    "color_palette": {
+      "neutral_slate": {
+        "bg_dark": "#0B0F17",
+        "surface_dark": "#111827",
+        "card_dark": "#1F2937",
+        "border_dark": "#374151",
+        "text_primary_dark": "#F9FAFB",
+        "text_secondary_dark": "#9CA3AF"
+      },
+      "admin_ops_blue": {
+        "primary": "#2563EB",
+        "primary_hover": "#1D4ED8",
+        "badge_bg": "rgba(37, 99, 235, 0.15)",
+        "accent_glow": "rgba(59, 130, 246, 0.25)"
+      },
+      "business_gold": {
+        "primary": "#D97706",
+        "primary_hover": "#B45309",
+        "badge_bg": "rgba(217, 119, 6, 0.15)",
+        "accent_glow": "rgba(245, 158, 11, 0.25)"
+      },
+      "partner_green": {
+        "primary": "#10B981",
+        "primary_hover": "#059669",
+        "badge_bg": "rgba(16, 185, 129, 0.15)",
+        "accent_glow": "rgba(16, 185, 129, 0.25)"
+      },
+      "slot_status_colors": {
+        "available": {
+          "hex": "#10B981",
+          "label": "Available",
+          "class": "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+        },
+        "booked": {
+          "hex": "#F59E0B",
+          "label": "Booked / Running",
+          "class": "bg-amber-500/20 text-amber-400 border-amber-500/40"
+        },
+        "offline": {
+          "hex": "#6B7280",
+          "label": "Offline / Inactive",
+          "class": "bg-slate-500/20 text-slate-400 border-slate-500/40"
+        },
+        "faulty": {
+          "hex": "#EF4444",
+          "label": "Hardware Fault / Maintenance",
+          "class": "bg-rose-500/20 text-rose-400 border-rose-500/40"
+        }
+      }
+    },
+    "layout_and_spacing": {
+      "padding_strategy": "Generous spacing system using p-4, p-6, p-8 with strict border padding to prevent text collision",
+      "grid_rules": "All grid children must be direct elements or subgrids with align-items: start",
+      "radius": "rounded-xl for cards and modals, rounded-lg for buttons, rounded-full for badges",
+      "glassmorphism": "backdrop-blur-md bg-slate-900/80 border border-slate-800/80"
+    }
+  },
+  "portal_specific_guidelines": {
+    "login_experience": {
+      "strategy": "Single entry portal landing with 3 prominent portal selector tabs (Admin, Business, Partner) or direct route access (/login/admin, /login/business, /login/partner)",
+      "visual_style": "Hero background featuring Pune cityscape and cab interior headrest display with brand badge",
+      "demo_credentials": "Provide quick-click 'Demo Auto-Fill' buttons for fast evaluator testing"
+    },
+    "admin_ops_portal": {
+      "route_prefix": "/admin",
+      "sidebar_accent": "border-l-4 border-blue-500",
+      "slot_visualiser_requirements": [
+        "Interactive grid showing 100+ cab slots color-coded (Green=Available, Amber=Booked, Grey=Offline, Red=Faulty)",
+        "Filter slots by zone (Koregaon Park, Baner, Viman Nagar, Hinjewadi, Swargate, Kothrud)",
+        "Click on slot to view Cab ID, Driver details, hardware telemetry, and assign/unassign creative",
+        "Quick statistics bar: Total Cabs (e.g. 250), Booked Slots (165), Available (72), Faulty/Offline (13)"
+      ],
+      "tables_requirements": [
+        "Paginated data tables with search, status filters, and action dropdown menus",
+        "Ad Review Queue: 16:9 thumbnail preview, advertiser name, campaign budget, Approve / Reject buttons with rejection reason modal"
+      ]
+    },
+    "business_portal": {
+      "route_prefix": "/business",
+      "sidebar_accent": "border-l-4 border-amber-500",
+      "booking_flow_requirements": [
+        "Step 1: Select Pune Zones & Vehicle Quantity (Minimum 15 cabs stepper, ₹4,300/cab/month)",
+        "Step 2: Slot Grid Selection & Creative Attachment",
+        "Step 3: GST Breakdown (Base amount + 9% CGST + 9% SGST = Total ₹ INR)",
+        "Step 4: Mock Payment Drawer (UPI QR code timer simulation, Card details, Instant Invoice download)"
+      ],
+      "creative_simulator": "Interactive 16:9 headrest screen mockup showing simulated passenger viewing ad with volume toggle and overlay controls"
+    },
+    "partner_portal": {
+      "route_prefix": "/partner",
+      "container": "mx-auto max-w-[460px] min-h-screen bg-slate-950 border-x border-slate-800 relative pb-20 shadow-2xl",
+      "navigation": "Fixed bottom tab bar with 4 tabs: Today, Earnings, Device, Profile",
+      "compliance_photo_feature": [
+        "15-Day mandatory compliance photo submission widget",
+        "Interactive camera view with headrest box alignment mask",
+        "Simulated photo capture, quality check preview, and instant submit action"
+      ]
+    }
+  },
+  "curated_image_assets": {
+    "cab_headrest_screen": "https://images.pexels.com/photos/8050485/pexels-photo-8050485.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "cab_passenger_view": "https://images.pexels.com/photos/6280697/pexels-photo-6280697.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "pune_city_street": "https://images.unsplash.com/photo-1715957374254-0e426ead90f5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHw0fHxwdW5lJTIwY2l0eSUyMGFyY2hpdGVjdHVyZSUyMGxhbmRtYXJrJTIwc3RyZWV0JTIwaW5kaWF8ZW58MHx8fHwxNzg3Njc5MDY0fDA&ixlib=rb-4.1.0&q=85",
+    "pune_market_architecture": "https://images.pexels.com/photos/32534888/pexels-photo-32534888.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "indian_driver_portrait": "https://images.pexels.com/photos/14797996/pexels-photo-14797996.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "cab_interior_dashboard": "https://images.pexels.com/photos/38493403/pexels-photo-38493403.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+  },
+  "required_test_ids": {
+    "auth": [
+      "login-portal-select-admin",
+      "login-portal-select-business",
+      "login-portal-select-partner",
+      "login-email-input",
+      "login-password-input",
+      "login-submit-button",
+      "demo-autofill-button"
+    ],
+    "admin_ops": [
+      "admin-dashboard-active-cabs-kpi",
+      "admin-dashboard-revenue-kpi",
+      "admin-slot-visualiser-grid",
+      "admin-slot-item-green",
+      "admin-slot-item-amber",
+      "admin-slot-item-grey",
+      "admin-slot-item-red",
+      "admin-ad-review-approve-btn",
+      "admin-ad-review-reject-btn",
+      "admin-fleet-add-cab-btn"
+    ],
+    "business": [
+      "business-overview-play-counter",
+      "business-creatives-upload-btn",
+      "business-booking-cab-stepper",
+      "business-booking-calculate-total",
+      "business-booking-proceed-payment",
+      "business-payment-upi-qr",
+      "business-payment-success-modal",
+      "business-download-gst-invoice"
+    ],
+    "partner": [
+      "partner-duty-toggle-switch",
+      "partner-today-earnings-card",
+      "partner-compliance-photo-trigger",
+      "partner-camera-capture-btn",
+      "partner-compliance-submit-btn",
+      "partner-bottom-nav-today",
+      "partner-bottom-nav-earnings",
+      "partner-bottom-nav-device",
+      "partner-bottom-nav-profile"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Ensure all three portals have independent routing and navigation bars.",
+    "Do not render Admin links inside Business or Partner navigation bars.",
+    "Maintain strict color accent identity: Blue for Admin/Ops, Amber/Gold for Business, Green for Partner.",
+    "Ensure the Partner Portal is rendered in a mobile phone frame container with min-width and max-width 460px centered horizontally.",
+    "All modals (Checkout, Camera compliance, Ad preview simulator, Rejection reason) must use Shadcn Dialog / Sheet components with smooth transitions.",
+    "All interactive and key statistical components MUST contain data-testid attributes listed in the guidelines."
+  ]
+}

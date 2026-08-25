@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-dark: #0B0F17;
+  --surface: #111827;
+  --card: #1F2937;
+  --border: #374151;
+  --text-1: #F9FAFB;
+  --text-2: #9CA3AF;
+
+  --ops: #2563EB;
+  --ops-hover: #1D4ED8;
+  --business: #D97706;
+  --business-hover: #B45309;
+  --partner: #10B981;
+  --partner-hover: #059669;
+
+  --available: #10B981;
+  --booked: #F59E0B;
+  --offline: #6B7280;
+  --faulty: #EF4444;
+
+  --radius: 0.5rem;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg-dark);
+  color: var(--text-1);
+}
+
+h1, h2, h3, h4, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 9px; }
+::selection { background: rgba(37,99,235,.35); }
+
+.glass { backdrop-filter: blur(14px); background: rgba(17,24,39,.75); border: 1px solid rgba(55,65,81,.7); }
+
+@keyframes floatUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.animate-in { animation: floatUp .5s cubic-bezier(.2,.7,.2,1) both; }
+
+@keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.live-dot { animation: pulseDot 1.4s ease-in-out infinite; }
+
+@keyframes progressBar { from { width: 0%; } to { width: 100%; } }
+
+.card-hover { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.card-hover:hover { transform: translateY(-2px); border-color: rgba(148,163,184,.4); }
+
+/* slot cells */
+.slot { transition: transform .12s ease, filter .12s ease; }
+.slot:hover { transform: scale(1.08); filter: brightness(1.2); z-index: 2; }
+
+.tap { min-height: 44px; min-width: 44px; }

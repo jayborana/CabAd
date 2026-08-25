@@ -1,0 +1,36 @@
+{
+  "summary": "End-to-end testing of Sawari (OPS + Business + Partner). Backend 17/18 pytest passing. All three portals log in, portal-lock returns clear 403, OPS dashboard renders (KPIs + slot visualiser grid + activity feed) — the reported blank-loader bug was NOT reproducible in this environment. Business booking flow renders GST breakdown correctly. Partner compliance photo submission works (POST /api/drivers/me/compliance-photo returns 200, toast 'Submitted for review'). OPS Payouts correctly disables the Run-payout button for drivers with KYC=Pending (e.g., Sunil Kadam).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/bookings", "issue": "Returns 405 Method Not Allowed. If listing bookings is a product requirement, add GET handler; otherwise this is expected."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "PartnerPortal Today screen", "issue": "Element with data-testid='partner-today-earnings-card' is not found in DOM. The 'EARNINGS TODAY' card is visually present but the required data-testid attribute is missing on the wrapping element. Add data-testid to the earnings card container.", "selector": "partner-today-earnings-card", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "OPS dashboard blank-loader bug is NOT reproducible on the preview URL — every request returned 200 and the dashboard rendered with KPIs (Total cabs 62, Slots sold 58, MRR ₹2,49,400, Plays today 41,760, Pending reviews 1) plus the slot visualiser grid. If a user still reports it, ask for: browser (mobile Safari?), whether localStorage is disabled/blocked, and whether 3rd-party cookies are blocked (httpOnly cookie is dropped in some previews, so Bearer path is critical — already in place).",
+    "Add data-testid='partner-today-earnings-card' to the Earnings card container in PartnerPortal.jsx (currently missing).",
+    "Optional: implement GET /api/bookings for booking history listing (currently returns 405)."
+  ],
+  "critical_code_review_comments": [
+    "AuthContext.refresh() correctly guards against a late stale /auth/me response clobbering an already-logged-in user (setUser((prev) => (prev && prev.portal ? prev : false))). Good pattern.",
+    "server.py is 932 lines — consider splitting into routers per resource (auth/ops/business/partner) for maintainability.",
+    "Frontend correctly uses REACT_APP_BACKEND_URL and Authorization: Bearer fallback (localStorage 'sawari_token') given the httpOnly cookie may be dropped in preview envs.",
+    "CORS_ORIGINS is set to '*' but withCredentials=true on the axios client. If backend uses `allow_credentials=True` with '*', browsers will refuse cookies — verify explicit origin allowlist for prod."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "94% (17/18)", "frontend": "95%"},
+  "test_credentials": "As-provided in /app/memory/test_credentials.md — all worked (OPS jayborana3@gmail.com/demo1234, BUSINESS owner@pizzapalace.com/demo1234, PARTNER 9812340001/1234).",
+  "seed_data_creation": "None — used seeded data (62 cabs, 3 advertisers, drivers, 1 pending creative 'Monsoon Sale' by Kaveri, driver 9812340001 compliance OVERDUE).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "OPS dashboard rendering works — do not chase this ghost bug unless user provides fresh repro details. All three portals + portal-lock + compliance photo flow + payout guard verified. Only remaining gaps: missing data-testid on partner earnings card; GET /api/bookings returns 405 (may be by design).",
+  "rca of the issue": "Reported issue: OPS dashboard stays on a blank blue-gradient loader after login. RCA finding: NOT REPRODUCIBLE. Login POST /api/auth/login returned 200 → setToken + setUser executed → HashRouter route /#/ops mounted OpsPortal → GET /api/ops/dashboard (200), GET /api/cabs (200), GET /api/activity (200) → dashboard rendered with KPI cards and admin-slot-visualiser-grid within ~2s. No console errors, no React errors, no failed network calls. Most likely earlier report was caused by: (a) preview env dropping the httpOnly cookie AND browser blocking localStorage (then /auth/me returns 401 → user set to false → LoginScreen shown), OR (b) transient backend restart during login. The current code already handles (a) by storing token in localStorage and sending Bearer, and by not clobbering already-logged-in user on late /auth/me failure. Mitigation: none required at code level; ensure preview URL uses same domain (it does)."
+}
