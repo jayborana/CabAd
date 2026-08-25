@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -32,15 +32,63 @@ export function StatusBadge({ status }) {
   return <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold", cls)}>{label}</span>;
 }
 
-export function KPI({ label, value, sub, accent, testid, icon: Icon }) {
+export function KPI({ label, value, sub, accent, testid, icon: Icon, light }) {
   return (
-    <div data-testid={testid} className="card-hover rounded-xl border border-slate-800 bg-slate-900/60 p-5 animate-in">
+    <div data-testid={testid} className={cn("card-hover rounded-xl border p-5 animate-in", light ? "border-stone-200 bg-white shadow-sm" : "border-slate-800 bg-slate-900/60")}>
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
+        <span className={cn("text-xs font-medium uppercase tracking-wide", light ? "text-stone-500" : "text-slate-400")}>{label}</span>
         {Icon && <Icon size={16} style={{ color: accent }} />}
       </div>
-      <div className="mt-2 font-display text-2xl font-extrabold tracking-tight text-white">{value}</div>
-      {sub && <div className="mt-1 text-xs text-slate-500">{sub}</div>}
+      <div className={cn("mt-2 font-display text-2xl font-extrabold tracking-tight", light ? "text-stone-900" : "text-white")}>{value}</div>
+      {sub && <div className={cn("mt-1 text-xs", light ? "text-stone-400" : "text-slate-500")}>{sub}</div>}
+    </div>
+  );
+}
+
+export function AdRotator({ ads, light }) {
+  const list = ads && ads.length ? ads : [];
+  const [i, setI] = useState(0);
+  const [p, setP] = useState(0);
+  const dur = list[i]?.duration || 15;
+  useEffect(() => {
+    setP(0);
+    const step = 100 / (dur * 10);
+    const t = setInterval(() => {
+      setP((x) => {
+        if (x + step >= 100) { setI((n) => (n + 1) % Math.max(1, list.length)); return 0; }
+        return x + step;
+      });
+    }, 100);
+    return () => clearInterval(t);
+    // eslint-disable-next-line
+  }, [i, dur, list.length]);
+  const palette = ["#F59E0B", "#3B82F6", "#EC4899", "#10B981"];
+  if (!list.length) return <div className={light ? "text-sm text-stone-400" : "text-sm text-slate-500"}>No ads on air.</div>;
+  const cur = list[i];
+  return (
+    <div className="grid gap-4 sm:grid-cols-[1.4fr_1fr]">
+      <div className="relative aspect-video overflow-hidden rounded-xl border-4 border-slate-800 bg-black">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center" style={{ background: `radial-gradient(circle at 50% 35%, ${palette[i % 4]}33, #000)` }}>
+          <div className="text-3xl">🚕</div>
+          <div className="mt-2 px-4 font-display text-xl font-bold text-white">{cur.title}</div>
+          <div className="mt-1 text-xs font-semibold" style={{ color: palette[i % 4] }}>{cur.advertiser_name}</div>
+        </div>
+        <div className="absolute left-2 top-2 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
+          <span className="live-dot h-1.5 w-1.5 rounded-full bg-rose-500" /> LIVE · Ad {i + 1}/{list.length}
+        </div>
+        <div className="absolute bottom-0 left-0 h-1.5" style={{ width: p + "%", background: palette[i % 4], transition: "width .1s linear" }} />
+      </div>
+      <div className="space-y-2">
+        <div className={cn("text-xs font-semibold uppercase tracking-wide", light ? "text-stone-500" : "text-slate-400")}>Rotation · 4 brands / minute</div>
+        {list.map((a, n) => (
+          <div key={a.id} className={cn("flex items-center gap-2 rounded-lg border px-3 py-2 text-sm", n === i ? "" : light ? "border-stone-200" : "border-slate-800")}
+            style={n === i ? { borderColor: palette[n % 4], background: palette[n % 4] + "1a" } : {}}>
+            <span className="h-2 w-2 flex-none rounded-full" style={{ background: palette[n % 4] }} />
+            <span className={cn("truncate font-medium", light ? "text-stone-800" : "text-white")}>{a.advertiser_name}</span>
+            <span className={cn("ml-auto text-xs", light ? "text-stone-400" : "text-slate-500")}>{Math.round(a.duration)}s</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

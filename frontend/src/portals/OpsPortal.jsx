@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { http, inr, apiError } from "@/lib/api";
-import { LoginScreen, KPI, SlotGrid, Legend, StatusBadge, Modal } from "@/components/shared";
+import { LoginScreen, KPI, SlotGrid, Legend, StatusBadge, Modal, AdRotator } from "@/components/shared";
 import { Shell, PageHead, Card } from "@/components/Shell";
 import { toast } from "sonner";
 import {
@@ -60,6 +60,7 @@ function Dashboard({ go }) {
   const [kpi] = useFetch("/ops/dashboard");
   const [cabs, reloadCabs] = useFetch("/cabs");
   const [activity] = useFetch("/activity");
+  const [ads] = useFetch("/creatives/on-air");
   if (!kpi || !cabs) return <FullLoader />;
   return (
     <>
@@ -72,6 +73,14 @@ function Dashboard({ go }) {
         <KPI label="Plays today" value={kpi.plays_today.toLocaleString("en-IN")} icon={PlayCircle} accent={ACCENT} />
         <KPI label="Pending reviews" value={kpi.pending_reviews} sub={`${kpi.overdue_photos} photo overdue`} icon={ClipboardCheck} accent={ACCENT} />
       </div>
+
+      <Card className="mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-display font-bold text-white">Now playing — cab-screen rotation</h3>
+          <span className="text-xs text-slate-500">4 brands · 15s each · every minute</span>
+        </div>
+        <AdRotator ads={ads || []} />
+      </Card>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">

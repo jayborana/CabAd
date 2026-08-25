@@ -1,0 +1,26 @@
+{
+  "summary": "Frontend regression for the new theming + AdRotator changes. All 6 requested checks PASS. OPS renders in DARK theme with the new 'Now playing — cab-screen rotation' AdRotator showing 4 brand rows (Pizza Palace, Kaveri Retail, Shagun Jewellers, FitZone Gym) and GET /api/creatives/on-air returns exactly 4 items. Business portal renders in the new LIGHT/cream theme (sidebar bg rgb(255,255,255) white, cards white, page visually cream per screenshot) — 'What's on the cab screen now' AdRotator + business-overview-play-counter both render; nav-book, nav-reports, nav-billing all switch without crashes/errors. Business booking still works end-to-end: stepper min=15, CGST 9% + SGST 9% breakdown visible, Proceed to payment opens the (dark) checkout modal with UPI QR. Partner Today screen renders green mobile shell with partner-today-earnings-card present. Portal-lock returns 403 with clear message 'These credentials belong to the business portal, not ops.' when using business creds on OPS login. No console errors or React crashes observed on any portal (the only console 403 was from our intentional portal-lock probe).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Business portal", "issues": ["document.body computed bg is still dark rgb(11,15,23) even though the Business shell renders on top with a light cream background. Purely cosmetic — not visible to users because the shell covers the viewport — but for cleanliness consider setting body/html bg to match the active portal theme (or making Shell force a light body class when theme='light') so any scroll bounce area doesn't flash dark."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "LoginScreen input uses data-testid 'login-email-input' but the field is a plain text input (not type=email). That is intentional (partner uses phone) and fine; just note for future testers — do not rely on input[type=email] selector.",
+    "Business light-theme is applied via ShellTheme context on the shell root div; body element still inherits the global dark bg from index.css. Consider setting a data-theme attribute on <html>/<body> in Shell useEffect so global styles adapt cleanly across portals.",
+    "GET /api/creatives/on-air requires auth (returns 401 unauth). That's fine, but for the ad rotator being a 'public' cab-screen feed you may want a public variant or cache header for kiosk clients later."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "not tested (skipped per request; verified via 1 auth-gated fetch: /creatives/on-air 200 with 4 brands)", "frontend": "100% (6/6 requested checks pass)" },
+  "test_credentials": "OPS admin@sawari.in/demo1234, BUSINESS owner@pizzapalace.com/demo1234, PARTNER 9812340001/1234 — all worked. Login form uses data-testid login-email-input / login-password-input / login-submit-button (identifier field, not email). Auth API expects body key 'identifier' (not 'email').",
+  "seed_data_creation": "None — used the freshly re-seeded data (68 cabs, 64 booked / 2 free, 4 advertisers, 4 on-air 15s creatives).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All portals green. If retesting the AdRotator, note the 4 brand chips render immediately with Pizza Palace highlighted as Ad 1/4; the 15s rotation is time-based (setInterval), so wait ~15s to see the highlight advance. Login: use data-testid login-email-input / login-password-input / login-submit-button and payload key 'identifier' not 'email'. Business light theme is confirmed via sidebar/card bg=rgb(255,255,255) and visual screenshot — do NOT be fooled by document.body computed bg being dark; the Shell root overlays it.",
+  "rca of the issue": "N/A — no bugs found. Prior main-agent screenshot harness failure was due to autofill/timing on the login form; using data-testid selectors with explicit fill() and a 3.5s post-submit wait worked reliably for all three portals."
+}

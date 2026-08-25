@@ -61,6 +61,9 @@ RULES = {
     "DRIVER_PHOTO_DAYS": 15,
     "DRIVER_PAY_PER_CAB_MONTH": 500,
     "DRIVER_DAILY": 60,
+    "AD_SECONDS": 15,
+    "ADS_PER_MINUTE": 4,
+    "CYCLE_SECONDS": 60,
     "GSTIN": "27AABCS1234K1Z5",
     "STATE": "Maharashtra",
 }
@@ -451,6 +454,16 @@ async def list_creatives(status: Optional[str] = None, user: dict = Depends(get_
         out.append(c)
     return out
 
+@api.get("/creatives/on-air")
+async def on_air_creatives(user: dict = Depends(get_current_user)):
+    adv_map = {a["id"]: a["name"] for a in await db.advertisers.find().to_list(1000)}
+    out = []
+    for c in await db.creatives.find({"on_air": True}).to_list(10):
+        out.append({"id": c["id"], "title": c["title"],
+                    "advertiser_name": adv_map.get(c["advertiser_id"]),
+                    "duration": c.get("duration", 15)})
+    return out[:4]
+
 @api.patch("/creatives/{cid}/approve")
 async def approve_creative(cid: str, user: dict = Depends(require("ops"))):
     c = await db.creatives.find_one({"id": cid})
@@ -758,7 +771,7 @@ async def seed():
     if already > 0:
         return  # data already seeded
 
-    await db.fleet.update_one({"id": "fleet"}, {"$set": {"id": "fleet", "total_cabs": 62, "max_cabs": 200}}, upsert=True)
+    await db.fleet.update_one({"id": "fleet"}, {"$set": {"id": "fleet", "total_cabs": 68, "max_cabs": 200}}, upsert=True)
 
     # advertisers
     advs = [
@@ -770,6 +783,8 @@ async def seed():
          "login": "ops@kaveri.in"},
         {"id": str(uuid.uuid4()), "name": "Shagun Jewellers", "email": "hello@shagun.in",
          "gstin": "27AAJCS9012M1Z1", "category": "Jeweller", "count": 18, "login": None},
+        {"id": str(uuid.uuid4()), "name": "FitZone Gym", "email": "hello@fitzone.in",
+         "gstin": "27AAFCF3456N1Z7", "category": "Gym", "count": 6, "login": None},
     ]
     for a in advs:
         await db.advertisers.insert_one({
@@ -786,7 +801,7 @@ async def seed():
     # cabs (62): assign to advertisers, keep some available/offline/faulty
     plates = set()
     cabs = []
-    for i in range(62):
+    for i in range(68):
         while True:
             p = f"{random.choice(PUNE_SERIES)}-{random.choice('ABCDEFGHJKLMNPQR')}{random.choice('ABCDEFGHJKLMNPQR')}-{random.randint(1000,9999)}"
             if p not in plates:
@@ -833,13 +848,20 @@ async def seed():
                                        "password_hash": hash_password("1234"), "name": drv["name"],
                                        "portal": "partner", "driver_id": drv["id"], "created_at": now_iso()})
 
-    # creatives: one approved & on-air for pizza, one pending for kaveri
-    await db.creatives.insert_one({"id": str(uuid.uuid4()), "advertiser_id": advs[0]["id"],
-        "title": "Buy 1 Get 1 — Weekend Special", "duration": 15.0, "video": "",
-        "expiry": (datetime.now(timezone.utc) + timedelta(days=25)).date().isoformat(),
-        "status": "approved", "reject_reason": None, "on_air": True, "created_at": now_iso()})
+    # creatives: 4 brands share each cab screen — one 15s ad each, rotating every minute
+    on_air_ads = [
+        (advs[0]["id"], "Buy 1 Get 1 — Weekend Special"),
+        (advs[1]["id"], "Monsoon Sale — Flat 40% Off"),
+        (advs[2]["id"], "Diwali Gold — 0% Making Charges"),
+        (advs[3]["id"], "Join Now — 3 Months Free"),
+    ]
+    for aid, title in on_air_ads:
+        await db.creatives.insert_one({"id": str(uuid.uuid4()), "advertiser_id": aid,
+            "title": title, "duration": 15.0, "video": "",
+            "expiry": (datetime.now(timezone.utc) + timedelta(days=25)).date().isoformat(),
+            "status": "approved", "reject_reason": None, "on_air": True, "created_at": now_iso()})
     await db.creatives.insert_one({"id": str(uuid.uuid4()), "advertiser_id": advs[1]["id"],
-        "title": "Monsoon Sale — Flat 40% Off", "duration": 20.0, "video": "",
+        "title": "Festive Combo Teaser", "duration": 15.0, "video": "",
         "expiry": (datetime.now(timezone.utc) + timedelta(days=30)).date().isoformat(),
         "status": "in_review", "reject_reason": None, "on_air": False, "created_at": now_iso()})
 

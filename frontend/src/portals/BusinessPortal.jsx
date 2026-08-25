@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { http, inr, apiError, downloadCSV } from "@/lib/api";
-import { LoginScreen, KPI, SlotGrid, Legend, StatusBadge, Modal } from "@/components/shared";
+import { LoginScreen, KPI, SlotGrid, Legend, StatusBadge, Modal, AdRotator } from "@/components/shared";
 import { CreativePreview } from "@/portals/OpsPortal";
 import { Shell, PageHead, Card } from "@/components/Shell";
 import { toast } from "sonner";
@@ -23,6 +23,11 @@ const NAV = [
   { key: "support", label: "Support", icon: LifeBuoy },
 ];
 
+// light-theme helpers
+const inputCls = "tap w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 placeholder:text-stone-400 outline-none focus:border-amber-500";
+const H3 = ({ children }) => <h3 className="mb-3 font-display font-bold text-stone-900">{children}</h3>;
+const Row = ({ l, v, bold }) => <div className="flex justify-between py-1 text-sm"><span className="text-stone-500">{l}</span><span className={`font-mono ${bold ? "font-bold text-stone-900" : "text-stone-700"}`}>{v}</span></div>;
+
 export default function BusinessPortal() {
   const { user } = useAuth();
   const [screen, setScreen] = useState("overview");
@@ -33,7 +38,7 @@ export default function BusinessPortal() {
       { id: "ops@kaveri.in", pw: "demo1234", label: "Kaveri · 25 cabs" },
     ]} />;
   return (
-    <Shell accent={ACCENT} portalName="Advertiser Portal" nav={NAV} active={screen} onNav={setScreen}>
+    <Shell accent={ACCENT} portalName="Advertiser Portal" nav={NAV} active={screen} onNav={setScreen} theme="light">
       {screen === "overview" && <Overview />}
       {screen === "creatives" && <Creatives go={setScreen} />}
       {screen === "upload" && <UploadAd go={setScreen} />}
@@ -46,7 +51,7 @@ export default function BusinessPortal() {
   );
 }
 
-const FullLoader = () => <div className="flex min-h-screen items-center justify-center"><Loader2 className="animate-spin text-slate-500" /></div>;
+const FullLoader = () => <div className="flex min-h-screen items-center justify-center bg-[#F7F3EC]"><Loader2 className="animate-spin text-stone-400" /></div>;
 function useFetch(url, dep = []) {
   const [data, setData] = useState(null);
   const reload = useCallback(() => { http.get(url).then((r) => setData(r.data)).catch(() => {}); }, [url]);
@@ -57,6 +62,7 @@ function useFetch(url, dep = []) {
 // ---------------- Overview ----------------
 function Overview() {
   const [o] = useFetch("/business/overview");
+  const [ads] = useFetch("/creatives/on-air");
   const [plays, setPlays] = useState(0);
   useEffect(() => {
     if (!o) return;
@@ -71,24 +77,25 @@ function Overview() {
       <PageHead title="Campaign Overview" sub={`${o.cabs} cabs on the road across Pune`} />
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <div className="flex items-center gap-2 text-sm text-slate-400"><span className="live-dot h-2.5 w-2.5 rounded-full bg-emerald-400" /> {o.on_air ? "On air now" : "Nothing on air"}</div>
-          <div className="mt-1 font-display text-xl font-bold text-white">{o.on_air ? o.on_air.title : "Put an approved ad on air →"}</div>
-          <div className="mt-6 text-xs uppercase tracking-wide text-slate-500">Live plays today</div>
+          <div className="flex items-center gap-2 text-sm text-stone-500"><span className="live-dot h-2.5 w-2.5 rounded-full bg-emerald-500" /> {o.on_air ? "On air now" : "Nothing on air"}</div>
+          <div className="mt-1 font-display text-xl font-bold text-stone-900">{o.on_air ? o.on_air.title : "Put an approved ad on air →"}</div>
+          <div className="mt-6 text-xs uppercase tracking-wide text-stone-400">Live plays today</div>
           <div data-testid="business-overview-play-counter" className="font-display text-5xl font-extrabold tabular-nums" style={{ color: ACCENT }}>{plays.toLocaleString("en-IN")}</div>
-          <div className="mt-1 text-xs text-slate-500">Projected {o.plays_today.toLocaleString("en-IN")} by end of day</div>
+          <div className="mt-1 text-xs text-stone-400">Projected {o.plays_today.toLocaleString("en-IN")} by end of day</div>
         </Card>
         <div className="grid grid-cols-2 gap-4">
-          <KPI label="Distance today" value={`${o.km_today.toLocaleString("en-IN")} km`} accent={ACCENT} />
-          <KPI label="Est. reach" value={o.reach_estimate.toLocaleString("en-IN")} accent={ACCENT} />
-          <KPI label="Approved ads" value={o.approved} accent={ACCENT} />
-          <KPI label="Uptime" value={`${o.uptime}%`} accent={ACCENT} />
+          <KPI light label="Distance today" value={`${o.km_today.toLocaleString("en-IN")} km`} accent={ACCENT} />
+          <KPI light label="Est. reach" value={o.reach_estimate.toLocaleString("en-IN")} accent={ACCENT} />
+          <KPI light label="Approved ads" value={o.approved} accent={ACCENT} />
+          <KPI light label="Uptime" value={`${o.uptime}%`} accent={ACCENT} />
         </div>
       </div>
       <Card className="mt-6">
-        <h3 className="mb-2 font-display font-bold text-white">Cab health snapshot</h3>
-        <div className="flex flex-wrap gap-3 text-sm text-slate-400">
-          <span>🟢 {o.cabs} live</span><span>⏱ {o.uptime}% uptime</span><span>📺 {o.plays_today.toLocaleString("en-IN")} plays / day</span>
+        <div className="mb-3 flex items-center justify-between">
+          <H3>What's on the cab screen now</H3>
+          <span className="text-xs text-stone-400">Your ad shares a 4-brand rotation · 15s each</span>
         </div>
+        <AdRotator ads={ads || []} light />
       </Card>
     </>
   );
@@ -106,20 +113,20 @@ function Creatives({ go }) {
     <>
       <PageHead title="Creatives" sub="Your ad library"
         action={<button data-testid="business-creatives-upload-btn" onClick={() => go("upload")} className="tap flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white" style={{ background: ACCENT }}><Plus size={16} /> Upload ad</button>} />
-      {creatives.length === 0 && <Card><div className="py-8 text-center text-slate-500">No creatives yet. Upload your first ad.</div></Card>}
+      {creatives.length === 0 && <Card><div className="py-8 text-center text-stone-400">No creatives yet. Upload your first ad.</div></Card>}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {creatives.map((c) => (
           <Card key={c.id}>
-            <div className="mb-3 aspect-video overflow-hidden rounded-lg border border-slate-800 bg-black flex items-center justify-center relative">
-              <button onClick={() => setPreview(c)} className="flex flex-col items-center gap-1.5 text-slate-400 hover:text-white"><PlayCircle size={36} /><span className="text-xs">{c.duration}s</span></button>
-              {c.on_air && <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold text-white"><Radio size={10} /> ON AIR</span>}
+            <div className="relative mb-3 flex aspect-video items-center justify-center overflow-hidden rounded-lg border border-stone-200 bg-stone-900">
+              <button onClick={() => setPreview(c)} className="flex flex-col items-center gap-1.5 text-stone-300 hover:text-white"><PlayCircle size={36} /><span className="text-xs">{c.duration}s</span></button>
+              {c.on_air && <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white"><Radio size={10} /> ON AIR</span>}
             </div>
-            <div className="flex items-start justify-between gap-2"><div className="font-semibold text-white">{c.title}</div><StatusBadge status={c.status} /></div>
-            {c.status === "rejected" && c.reject_reason && <div className="mt-2 rounded-md bg-rose-500/10 px-2 py-1.5 text-xs text-rose-300">Reason: {c.reject_reason}</div>}
+            <div className="flex items-start justify-between gap-2"><div className="font-semibold text-stone-900">{c.title}</div><StatusBadge status={c.status} /></div>
+            {c.status === "rejected" && c.reject_reason && <div className="mt-2 rounded-md bg-rose-50 px-2 py-1.5 text-xs text-rose-600">Reason: {c.reject_reason}</div>}
             <div className="mt-3 flex gap-2">
               {c.status === "approved" && !c.on_air && <button onClick={() => onAir(c)} className="tap flex-1 rounded-md py-2 text-xs font-semibold text-white" style={{ background: ACCENT }}>Put on air</button>}
-              <button onClick={() => setPreview(c)} className="tap flex-1 rounded-md border border-slate-700 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800">Preview</button>
-              <button onClick={() => setDelFor(c)} className="tap rounded-md border border-slate-700 px-2.5 text-slate-400 hover:text-rose-400"><Trash2 size={14} /></button>
+              <button onClick={() => setPreview(c)} className="tap flex-1 rounded-md border border-stone-300 py-2 text-xs font-medium text-stone-700 hover:bg-stone-100">Preview</button>
+              <button onClick={() => setDelFor(c)} className="tap rounded-md border border-stone-300 px-2.5 text-stone-400 hover:text-rose-500"><Trash2 size={14} /></button>
             </div>
           </Card>
         ))}
@@ -141,7 +148,6 @@ function UploadAd({ go }) {
   const [duration, setDuration] = useState(0);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef();
-
   const onFile = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -154,41 +160,39 @@ function UploadAd({ go }) {
     reader.onload = () => setVideo(reader.result);
     reader.readAsDataURL(f);
   };
-
   const submit = async () => {
     if (!title.trim() || !video) return toast.error("Add a title and pick a video");
     setBusy(true);
     try { await http.post("/creatives", { title, duration, video, expiry }); toast.success("Submitted for review (2h SLA)"); go("creatives"); }
     catch (e) { toast.error(apiError(e.response?.data?.detail)); } finally { setBusy(false); }
   };
-
   return (
     <>
-      <PageHead title="Upload a new ad" sub="MP4 recommended · plays on the headrest screen" />
+      <PageHead title="Upload a new ad" sub="MP4 recommended · 15s plays in a 4-brand rotation" />
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <label className="mb-1 block text-xs text-slate-400">Ad title</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} className="tap mb-4 w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2.5 text-white" placeholder="Weekend Combo Offer" />
-          <label className="mb-1 block text-xs text-slate-400">Video file</label>
+          <label className="mb-1 block text-xs text-stone-500">Ad title</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls + " mb-4"} placeholder="Weekend Combo Offer" />
+          <label className="mb-1 block text-xs text-stone-500">Video file</label>
           <input ref={fileRef} type="file" accept="video/*" onChange={onFile} className="hidden" />
-          <button onClick={() => fileRef.current.click()} className="tap mb-1 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-600 py-8 text-slate-400 hover:border-slate-400">
+          <button onClick={() => fileRef.current.click()} className="tap mb-1 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-stone-400 py-8 text-stone-500 hover:border-amber-500">
             <UploadIcon size={18} /> {video ? "Change video" : "Pick a video file"}
           </button>
-          {duration > 0 && <div className="mb-4 text-xs text-emerald-400">Duration read: {duration}s</div>}
-          <label className="mb-1 mt-3 block text-xs text-slate-400">Expiry date</label>
-          <input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="tap mb-4 w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2.5 text-white" />
+          {duration > 0 && <div className="mb-4 text-xs text-emerald-600">Duration read: {duration}s</div>}
+          <label className="mb-1 mt-3 block text-xs text-stone-500">Expiry date</label>
+          <input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className={inputCls + " mb-4"} />
           <button onClick={submit} disabled={busy} className="tap flex w-full items-center justify-center gap-2 rounded-lg py-3 font-semibold text-white disabled:opacity-60" style={{ background: ACCENT }}>{busy && <Loader2 size={16} className="animate-spin" />} Submit for review</button>
         </Card>
         <div className="space-y-4">
           <Card>
-            <h3 className="mb-2 font-display font-bold text-white">Live preview</h3>
-            <div className="aspect-video overflow-hidden rounded-lg border-4 border-slate-700 bg-black flex items-center justify-center">
-              {video ? <video src={video} controls className="h-full w-full object-contain" /> : <div className="text-slate-600 text-sm">Preview appears here</div>}
+            <H3>Live preview</H3>
+            <div className="flex aspect-video items-center justify-center overflow-hidden rounded-lg border-4 border-stone-800 bg-black">
+              {video ? <video src={video} controls className="h-full w-full object-contain" /> : <div className="text-sm text-stone-500">Preview appears here</div>}
             </div>
           </Card>
           <Card>
-            <h3 className="mb-2 font-display font-bold text-white">Content policy</h3>
-            <ul className="space-y-1.5 text-sm text-slate-400">
+            <H3>Content policy</H3>
+            <ul className="space-y-1.5 text-sm text-stone-600">
               <li>• No adult, alcohol, tobacco or political content</li>
               <li>• Clear, legible, 16:9, min 720p</li>
               <li>• Reviewed within 2 working hours</li>
@@ -211,79 +215,70 @@ function BookSlots() {
   const [preview, setPreview] = useState(null);
   const [checkout, setCheckout] = useState(false);
   const [success, setSuccess] = useState(null);
-
   useEffect(() => { setCount(MIN); }, [MIN]);
   useEffect(() => {
     if (count < MIN) return;
     http.get(`/bookings/preview?cab_count=${count}`).then((r) => setPreview(r.data)).catch(() => {});
   }, [count, MIN]);
-
   if (!cabs || !avail) return <FullLoader />;
   const presets = [15, 25, 50, 100];
-
   const pay = async () => {
     try {
       const { data } = await http.post("/bookings", { cab_count: count });
       setCheckout(false); setSuccess(data); reloadCabs(); reloadAvail();
     } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
   };
-
   return (
     <>
       <PageHead title="Book cab slots" sub={`${config?.brand?.city || "Pune"} fleet · ₹${(config?.rules?.PRICE_PER_CAB || 4300).toLocaleString("en-IN")}/cab/month · min ${MIN}`} />
       <div className="grid gap-4 sm:grid-cols-3">
-        <KPI label={`Total fleet in ${config?.brand?.city || "Pune"}`} value={`${avail.total} cabs`} accent={ACCENT} />
-        <KPI label="Slots currently taken" value={avail.booked} accent={ACCENT} />
-        <KPI label="Available now" value={avail.available} sub="bookable immediately" accent={ACCENT} />
+        <KPI light label={`Total fleet in ${config?.brand?.city || "Pune"}`} value={`${avail.total} cabs`} accent={ACCENT} />
+        <KPI light label="Slots currently taken" value={avail.booked} accent={ACCENT} />
+        <KPI light label="Available now" value={avail.available} sub="bookable immediately" accent={ACCENT} />
       </div>
-
       <Card className="mt-6">
-        <div className="mb-3 flex items-center justify-between"><h3 className="font-display font-bold text-white">Live availability</h3><Legend /></div>
+        <div className="mb-3 flex items-center justify-between"><H3>Live availability</H3><Legend /></div>
         <SlotGrid cabs={cabs} />
-        <p className="mt-3 text-xs text-slate-500">Green cells are free and auto-picked when you book. Amber cells are taken by other advertisers.</p>
+        <p className="mt-3 text-xs text-stone-400">Green cells are free and auto-picked when you book. Amber cells are taken by other advertisers.</p>
       </Card>
-
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
-          <h3 className="mb-4 font-display font-bold text-white">How many cabs?</h3>
+          <H3>How many cabs?</H3>
           <div className="flex items-center justify-center gap-4">
-            <button onClick={() => setCount((c) => Math.max(MIN, c - 1))} className="tap flex h-11 w-11 items-center justify-center rounded-full border border-slate-700 text-white"><Minus size={18} /></button>
+            <button onClick={() => setCount((c) => Math.max(MIN, c - 1))} className="tap flex h-11 w-11 items-center justify-center rounded-full border border-stone-300 text-stone-700"><Minus size={18} /></button>
             <input data-testid="business-booking-cab-stepper" type="number" value={count} min={MIN}
               onChange={(e) => setCount(Math.max(MIN, Number(e.target.value) || MIN))}
-              className="w-24 rounded-lg border border-slate-700 bg-slate-950/60 py-3 text-center font-display text-2xl font-bold text-white" />
-            <button onClick={() => setCount((c) => c + 1)} className="tap flex h-11 w-11 items-center justify-center rounded-full border border-slate-700 text-white"><Plus size={18} /></button>
+              className="w-24 rounded-lg border border-stone-300 bg-white py-3 text-center font-display text-2xl font-bold text-stone-900" />
+            <button onClick={() => setCount((c) => c + 1)} className="tap flex h-11 w-11 items-center justify-center rounded-full border border-stone-300 text-stone-700"><Plus size={18} /></button>
           </div>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {presets.map((p) => <button key={p} onClick={() => setCount(p)} className={`tap rounded-full border px-4 py-1.5 text-sm ${count === p ? "text-white" : "border-slate-700 text-slate-400"}`} style={count === p ? { background: ACCENT, borderColor: ACCENT } : {}}>{p}</button>)}
+            {presets.map((p) => <button key={p} onClick={() => setCount(p)} className={`tap rounded-full border px-4 py-1.5 text-sm ${count === p ? "text-white" : "border-stone-300 text-stone-600"}`} style={count === p ? { background: ACCENT, borderColor: ACCENT } : {}}>{p}</button>)}
           </div>
           {preview?.waitlist > 0 && (
-            <div className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
+            <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
               Only <b>{preview.bookable}</b> cabs free right now. We'll waitlist <b>{preview.waitlist}</b> more and add them as they free up — no charge until they're live.
             </div>
           )}
         </Card>
-
         <Card>
-          <h3 className="mb-4 font-display font-bold text-white">Price breakdown</h3>
+          <H3>Price breakdown</H3>
           {preview && (
             <>
               <Row l={`${preview.bookable} cabs × ₹${(config?.rules?.PRICE_PER_CAB || 4300).toLocaleString("en-IN")}`} v={inr(preview.base)} />
               <Row l="CGST (9%)" v={inr(preview.cgst)} />
               <Row l="SGST (9%)" v={inr(preview.sgst)} />
-              <div className="mt-2 border-t border-slate-800 pt-2"><Row l="Total payable" v={inr(preview.total)} bold /></div>
+              <div className="mt-2 border-t border-stone-200 pt-2"><Row l="Total payable" v={inr(preview.total)} bold /></div>
               <button data-testid="business-booking-proceed-payment" onClick={() => setCheckout(true)} disabled={preview.bookable === 0}
-                className="tap mt-5 w-full rounded-lg py-3 font-semibold text-white disabled:opacity-50" style={{ background: ACCENT }} data-calc="business-booking-calculate-total">
+                className="tap mt-5 w-full rounded-lg py-3 font-semibold text-white disabled:opacity-50" style={{ background: ACCENT }}>
                 Proceed to payment · {inr(preview.total)}
               </button>
             </>
           )}
         </Card>
       </div>
-
       <Modal open={checkout} onClose={() => setCheckout(false)} wide title="Checkout" testid="checkout-modal">
         {preview && <Checkout preview={preview} onPay={pay} config={config} />}
       </Modal>
-
       <Modal open={!!success} onClose={() => setSuccess(null)} testid="business-payment-success-modal">
         {success && (
           <div className="text-center">
@@ -305,14 +300,15 @@ function Checkout({ preview, onPay, config }) {
   const [method, setMethod] = useState("upi");
   const [timer, setTimer] = useState(300);
   useEffect(() => { const t = setInterval(() => setTimer((s) => Math.max(0, s - 1)), 1000); return () => clearInterval(t); }, []);
+  const DRow = ({ l, v, bold }) => <div className="flex justify-between py-1 text-sm"><span className="text-slate-400">{l}</span><span className={`font-mono ${bold ? "font-bold text-white" : "text-slate-200"}`}>{v}</span></div>;
   return (
     <div className="grid gap-5 sm:grid-cols-2">
       <div>
-        <div className="mb-3 aspect-video rounded-lg border-4 border-slate-700 bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center text-3xl">🚕</div>
-        <Row l={`${preview.bookable} cabs`} v={inr(preview.base)} />
-        <Row l="CGST (9%)" v={inr(preview.cgst)} />
-        <Row l="SGST (9%)" v={inr(preview.sgst)} />
-        <div className="mt-2 border-t border-slate-800 pt-2"><Row l="Total" v={inr(preview.total)} bold /></div>
+        <div className="mb-3 flex aspect-video items-center justify-center rounded-lg border-4 border-slate-700 bg-gradient-to-br from-slate-800 to-slate-950 text-3xl">🚕</div>
+        <DRow l={`${preview.bookable} cabs`} v={inr(preview.base)} />
+        <DRow l="CGST (9%)" v={inr(preview.cgst)} />
+        <DRow l="SGST (9%)" v={inr(preview.sgst)} />
+        <div className="mt-2 border-t border-slate-800 pt-2"><DRow l="Total" v={inr(preview.total)} bold /></div>
       </div>
       <div>
         <div className="mb-3 flex gap-2">
@@ -352,26 +348,26 @@ function Reports() {
   return (
     <>
       <PageHead title="Reports" sub={`Fleet uptime ${r.uptime}%`}
-        action={<button onClick={exportCSV} className="tap flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200"><Download size={16} /> Export CSV</button>} />
+        action={<button onClick={exportCSV} className="tap flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700"><Download size={16} /> Export CSV</button>} />
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h3 className="mb-3 font-display font-bold text-white">Plays per day</h3>
+          <H3>Plays per day</H3>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={r.daily}><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={ACCENT} stopOpacity={0.6} /><stop offset="100%" stopColor={ACCENT} stopOpacity={0} /></linearGradient></defs>
-              <CartesianGrid stroke="#1f2937" vertical={false} /><XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={(d) => d.slice(5)} /><YAxis tick={{ fill: "#64748b", fontSize: 10 }} /><Tooltip contentStyle={{ background: "#0b0f17", border: "1px solid #374151", borderRadius: 8 }} />
+              <CartesianGrid stroke="#e7e1d8" vertical={false} /><XAxis dataKey="date" tick={{ fill: "#a8a29e", fontSize: 10 }} tickFormatter={(d) => d.slice(5)} /><YAxis tick={{ fill: "#a8a29e", fontSize: 10 }} /><Tooltip contentStyle={{ background: "#fff", border: "1px solid #e7e1d8", borderRadius: 8 }} />
               <Area type="monotone" dataKey="plays" stroke={ACCENT} fill="url(#g)" strokeWidth={2} /></AreaChart>
           </ResponsiveContainer>
         </Card>
         <Card>
-          <h3 className="mb-3 font-display font-bold text-white">Plays by hour</h3>
+          <H3>Plays by hour</H3>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={r.hourly}><CartesianGrid stroke="#1f2937" vertical={false} /><XAxis dataKey="hour" tick={{ fill: "#64748b", fontSize: 10 }} /><YAxis tick={{ fill: "#64748b", fontSize: 10 }} /><Tooltip contentStyle={{ background: "#0b0f17", border: "1px solid #374151", borderRadius: 8 }} /><Bar dataKey="plays" fill={ACCENT} radius={[4, 4, 0, 0]} /></BarChart>
+            <BarChart data={r.hourly}><CartesianGrid stroke="#e7e1d8" vertical={false} /><XAxis dataKey="hour" tick={{ fill: "#a8a29e", fontSize: 10 }} /><YAxis tick={{ fill: "#a8a29e", fontSize: 10 }} /><Tooltip contentStyle={{ background: "#fff", border: "1px solid #e7e1d8", borderRadius: 8 }} /><Bar dataKey="plays" fill={ACCENT} radius={[4, 4, 0, 0]} /></BarChart>
           </ResponsiveContainer>
         </Card>
       </div>
       <Card className="mt-6 overflow-x-auto p-0">
-        <table className="w-full text-sm"><thead><tr className="border-b border-slate-800 text-left text-xs uppercase text-slate-500">{["Cab", "Plays", "KM", "Uptime"].map((h) => <th key={h} className="p-3">{h}</th>)}</tr></thead>
-          <tbody>{r.per_cab.map((c) => <tr key={c.plate} className="border-b border-slate-800/60"><td className="p-3 font-mono text-slate-300">{c.plate}</td><td className="p-3 text-white">{c.plays}</td><td className="p-3 text-slate-400">{c.km}</td><td className="p-3 text-slate-400">{c.uptime}%</td></tr>)}</tbody>
+        <table className="w-full text-sm"><thead><tr className="border-b border-stone-200 text-left text-xs uppercase text-stone-400">{["Cab", "Plays", "KM", "Uptime"].map((h) => <th key={h} className="p-3">{h}</th>)}</tr></thead>
+          <tbody>{r.per_cab.map((c) => <tr key={c.plate} className="border-b border-stone-100"><td className="p-3 font-mono text-stone-700">{c.plate}</td><td className="p-3 text-stone-900">{c.plays}</td><td className="p-3 text-stone-500">{c.km}</td><td className="p-3 text-stone-500">{c.uptime}%</td></tr>)}</tbody>
         </table>
       </Card>
     </>
@@ -388,15 +384,15 @@ function Billing() {
   return (
     <>
       <PageHead title="Billing" sub={`Current plan · ${adv.cabs_booked} cabs · ${inr(adv.spend)}/mo`} />
-      <h3 className="mb-3 font-display font-bold text-white">Invoices</h3>
+      <H3>Invoices</H3>
       <Card className="overflow-x-auto p-0">
-        <table className="w-full text-sm"><thead><tr className="border-b border-slate-800 text-left text-xs uppercase text-slate-500">{["Invoice", "Cabs", "Amount", "Status", ""].map((h) => <th key={h} className="p-3">{h}</th>)}</tr></thead>
-          <tbody>{invoices.map((i) => <tr key={i.id} className="border-b border-slate-800/60"><td className="p-3 font-mono text-slate-300">{i.number}</td><td className="p-3 text-white">{i.cabs}</td><td className="p-3 font-mono text-white">{inr(i.total)}</td><td className="p-3"><StatusBadge status={i.status} /></td><td className="p-3"><button onClick={() => printInvoice(i, config)} className="text-xs font-medium" style={{ color: ACCENT }}>Print GST invoice</button></td></tr>)}</tbody>
+        <table className="w-full text-sm"><thead><tr className="border-b border-stone-200 text-left text-xs uppercase text-stone-400">{["Invoice", "Cabs", "Amount", "Status", ""].map((h) => <th key={h} className="p-3">{h}</th>)}</tr></thead>
+          <tbody>{invoices.map((i) => <tr key={i.id} className="border-b border-stone-100"><td className="p-3 font-mono text-stone-700">{i.number}</td><td className="p-3 text-stone-900">{i.cabs}</td><td className="p-3 font-mono text-stone-900">{inr(i.total)}</td><td className="p-3"><StatusBadge status={i.status} /></td><td className="p-3"><button onClick={() => printInvoice(i, config)} className="text-xs font-medium" style={{ color: ACCENT }}>Print GST invoice</button></td></tr>)}</tbody>
         </table>
       </Card>
-      <h3 className="mb-3 mt-6 font-display font-bold text-white">Credit notes (SLA breaches)</h3>
-      {notes.length === 0 ? <Card><div className="py-6 text-center text-sm text-slate-500">No credit notes.</div></Card> : (
-        <div className="space-y-3">{notes.map((n) => <Card key={n.id} className="flex items-center justify-between"><div><div className="font-mono text-sm text-white">{n.number}</div><div className="text-xs text-slate-500">{n.reason}</div></div><div className="font-mono font-bold text-emerald-400">+{inr(n.total)}</div></Card>)}</div>
+      <div className="mt-6"><H3>Credit notes (SLA breaches)</H3></div>
+      {notes.length === 0 ? <Card><div className="py-6 text-center text-sm text-stone-400">No credit notes.</div></Card> : (
+        <div className="space-y-3">{notes.map((n) => <Card key={n.id} className="flex items-center justify-between"><div><div className="font-mono text-sm text-stone-900">{n.number}</div><div className="text-xs text-stone-500">{n.reason}</div></div><div className="font-mono font-bold text-emerald-600">+{inr(n.total)}</div></Card>)}</div>
       )}
     </>
   );
@@ -412,13 +408,13 @@ function Account() {
       <PageHead title="Account" sub="Business details & preferences" />
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h3 className="mb-3 font-display font-bold text-white">Business</h3>
+          <H3>Business</H3>
           <Row l="Name" v={adv.name} /><Row l="Email" v={adv.email} /><Row l="Category" v={adv.category} /><Row l="GSTIN" v={adv.gstin || "—"} /><Row l="Renewal" v={adv.renewal_date} />
         </Card>
         <Card>
-          <h3 className="mb-3 font-display font-bold text-white">Notifications & team</h3>
+          <H3>Notifications & team</H3>
           <Row l="Email alerts" v={adv.notify_email ? "On" : "Off"} /><Row l="SMS alerts" v={adv.notify_sms ? "On" : "Off"} />
-          <div className="mt-3 border-t border-slate-800 pt-3"><Row l="Signed in as" v={user?.email} /></div>
+          <div className="mt-3 border-t border-stone-200 pt-3"><Row l="Signed in as" v={user?.email} /></div>
         </Card>
       </div>
     </>
@@ -431,6 +427,7 @@ function Support() {
   const b = config?.brand || {};
   const faqs = [
     ["What is the minimum booking?", `${config?.rules?.MIN_CABS || 15} cabs per month.`],
+    ["How does the ad rotation work?", "Each cab screen shows 4 brands' ads — 15 seconds each, cycling every minute."],
     ["When does my ad go live?", "After admin approval (within 2 working hours), tap 'Put on air'."],
     ["What if a cab has low uptime?", "Below 90% uptime, we auto-raise a credit note on your next invoice."],
   ];
@@ -439,19 +436,17 @@ function Support() {
       <PageHead title="Support" sub="We're here to help" />
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h3 className="mb-3 font-display font-bold text-white">Contact</h3>
+          <H3>Contact</H3>
           <Row l="Email" v={b.support_email} /><Row l="Phone" v={b.phone} /><Row l="WhatsApp" v={b.whatsapp} />
         </Card>
         <Card>
-          <h3 className="mb-3 font-display font-bold text-white">FAQ</h3>
-          <div className="space-y-3">{faqs.map(([q, a], i) => <div key={i}><div className="text-sm font-semibold text-white">{q}</div><div className="text-sm text-slate-400">{a}</div></div>)}</div>
+          <H3>FAQ</H3>
+          <div className="space-y-3">{faqs.map(([q, a], i) => <div key={i}><div className="text-sm font-semibold text-stone-900">{q}</div><div className="text-sm text-stone-500">{a}</div></div>)}</div>
         </Card>
       </div>
     </>
   );
 }
-
-const Row = ({ l, v, bold }) => <div className="flex justify-between py-1 text-sm"><span className="text-slate-400">{l}</span><span className={`font-mono ${bold ? "font-bold text-white" : "text-slate-200"}`}>{v}</span></div>;
 
 function printInvoice(inv, config) {
   const b = config?.brand || {}; const r = config?.rules || {};
